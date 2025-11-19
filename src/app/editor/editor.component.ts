@@ -1,5 +1,5 @@
 import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
-import { FormBuilder, FormGroup, FormControl } from '@angular/forms';
+import { FormBuilder, FormGroup, FormControl, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { Article, ArticlesService } from '../core';
@@ -25,12 +25,13 @@ export class EditorComponent implements OnInit {
   ) {
     // use the FormBuilder to create a form group
     this.articleForm = this.fb.group({
-      title: '',
-      description: '',
-      body: ''
+      title: ['', Validators.required],
+      description: ['', Validators.required],
+      body: ['', Validators.required],
+      coverImageUrl: [''],
     });
 
-    // Initialized tagList as empty array
+    // Initialize tagList as empty array
     this.article.tagList = [];
 
     // Optional: subscribe to value changes on the form
@@ -41,23 +42,34 @@ export class EditorComponent implements OnInit {
     // If there's an article prefetched, load it
     this.route.data.subscribe((data: { article: Article }) => {
       if (data.article) {
-        this.article = data.article;
-        this.articleForm.patchValue(data.article);
+        this.article = {
+          ...data.article,
+          tagList: data.article.tagList ? [...data.article.tagList] : []
+        };
+        this.articleForm.patchValue({
+          title: data.article.title,
+          description: data.article.description,
+          body: data.article.body,
+          coverImageUrl: data.article.coverImageUrl ?? ''
+        });
         this.cd.markForCheck();
       }
     });
   }
 
-  trackByFn(index, item) {
+  trackByFn(index: number, item: string) {
     return index;
   }
 
   addTag() {
-    // retrieve tag control
-    const tag = this.tagField.value;
-    // only add tag if it does not exist yet
-    if (this.article.tagList.indexOf(tag) < 0) {
-      this.article.tagList.push(tag);
+    const tag = this.tagField.value?.trim();
+    if (tag) {
+      if (!Array.isArray(this.article.tagList)) {
+        this.article.tagList = [];
+      }
+      if (!this.article.tagList.includes(tag)) {
+        this.article.tagList.push(tag);
+      }
     }
     // clear the input
     this.tagField.reset('');
@@ -87,7 +99,7 @@ export class EditorComponent implements OnInit {
     );
   }
 
-  updateArticle(values: Object) {
+  updateArticle(values: Partial<Article>) {
     Object.assign(this.article, values);
-  }
+  }  
 }

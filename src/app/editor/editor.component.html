@@ -8,13 +8,15 @@
         <form [formGroup]="articleForm">
           <fieldset [disabled]="isSubmitting">
 
+            <!-- Title -->
             <fieldset class="form-group">
-              <input class="form-control form-control-lg"
+              <input class="form-control"
                 formControlName="title"
                 type="text"
                 placeholder="Article Title" />
             </fieldset>
 
+            <!-- Description -->
             <fieldset class="form-group">
               <input class="form-control"
                 formControlName="description"
@@ -22,6 +24,27 @@
                 placeholder="What's this article about?" />
             </fieldset>
 
+            <!-- Cover Image URL Field -->
+            <fieldset class="form-group">
+              <input class="form-control"
+                formControlName="coverImageUrl"
+                type="text"
+                placeholder="Cover Image URL (Optional)" />
+
+              <!-- Live Preview -->
+              <div *ngIf="articleForm.value.coverImageUrl && articleForm.value.coverImageUrl.length > 5"
+                   class="mt-3">
+                <label class="text-muted small">Preview:</label>
+                <img
+                  [src]="articleForm.value.coverImageUrl"
+                  alt="Cover preview"
+                  class="img-fluid rounded shadow-sm"
+                  style="max-height: 280px; object-fit: cover;"
+                />
+              </div>
+            </fieldset>
+
+            <!-- Body -->
             <fieldset class="form-group">
               <textarea class="form-control"
                 formControlName="body"
@@ -30,6 +53,7 @@
               </textarea>
             </fieldset>
 
+            <!-- Tags -->
             <fieldset class="form-group">
               <input class="form-control"
                 type="text"
@@ -46,7 +70,10 @@
               </div>
             </fieldset>
 
-            <button class="btn btn-lg pull-xs-right btn-primary" type="button" (click)="submitForm()">
+            <!-- Submit -->
+            <button class="btn btn-lg pull-xs-right btn-primary"
+              type="button"
+              (click)="submitForm()">
               Publish Article
             </button>
 

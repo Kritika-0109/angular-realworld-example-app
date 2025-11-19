@@ -2,63 +2,68 @@
 
   <div class="banner">
     <div class="container">
-      <h1>{{ article.title }}</h1>
 
-      <app-article-meta [article]="article">
+      <div *ngIf="article.coverImageUrl && showCoverImage" class="cover-card">
+        <div class="cover-surface">
+          <img
+            [src]="article.coverImageUrl"
+            alt="Article cover"
+            class="cover-img"
+            (error)="onCoverImageError()"
+          />
+        </div>
+      </div>
 
-          <span [hidden]="!canModify">
-          <a class="btn btn-sm btn-outline-secondary"
-             [routerLink]="['/editor', article.slug]">
-            <i class="ion-edit"></i> Edit Article
-          </a>
+      <div class="title-block">
+        <span class="article-tagline">Published article</span>
+        <h1>{{ article.title }}</h1>
+        <p *ngIf="article.description" class="article-subtitle">
+          {{ article.description }}
+        </p>
+      </div>
 
-          <button class="btn btn-sm btn-outline-danger"
-            [ngClass]="{disabled: isDeleting}"
-            (click)="deleteArticle()">
-            <i class="ion-trash-a"></i> Delete Article
-          </button>
-        </span>
-
-        <span [hidden]="canModify">
-          <app-follow-button
-            [profile]="article.author"
-            (toggle)="onToggleFollowing($event)">
-          </app-follow-button>
-
-          <app-favorite-button
-            [article]="article"
-            (toggle)="onToggleFavorite($event)">
-            {{ article.favorited ? 'Unfavorite' : 'Favorite' }} Article <span class="counter">({{ article.favoritesCount }})</span>
-          </app-favorite-button>
-        </span>
-
-      </app-article-meta>
+      <div class="meta-card">
+        <app-article-meta [article]="article"></app-article-meta>
+      </div>
     </div>
   </div>
 
   <div class="container page">
 
-    <div class="row article-content">
-      <div class="col-md-12">
+    <div class="content-card"
+         *ngIf="shouldShowContentCard">
+      <div class="row article-content">
+        <div class="col-md-12">
 
-        <div [innerHTML]="article.body | markdown"></div>
+          <div class="article-body"
+               *ngIf="article.body && article.body.trim(); else emptyBody"
+               [innerHTML]="article.body | markdown">
+          </div>
 
-        <ul class="tag-list">
-          <li *ngFor="let tag of article.tagList; trackBy: trackByFn"
-            class="tag-default tag-pill tag-outline">
-            {{ tag }}
-          </li>
-        </ul>
+          <ng-template #emptyBody>
+            <p class="article-empty">This article doesn’t have content yet.</p>
+          </ng-template>
 
+          <div class="tags-wrapper" *ngIf="article.tagList?.length">
+            <p class="tag-label">Tags</p>
+            <ul class="tag-list">
+              <li *ngFor="let tag of article.tagList; trackBy: trackByFn"
+                  class="tag-default tag-pill tag-outline">
+                {{ tag }}
+              </li>
+            </ul>
+          </div>
+
+        </div>
       </div>
     </div>
 
-    <hr />
+    <div class="divider"></div>
 
-    <div class="article-actions">
-      <app-article-meta [article]="article">
-
-          <span [hidden]="!canModify">
+    <div class="article-actions glass-card">
+      <div *ngIf="canModify; else readerActions" class="action-toolbar">
+        <p class="toolbar-label">Manage your story</p>
+        <div class="action-group">
           <a class="btn btn-sm btn-outline-secondary"
              [routerLink]="['/editor', article.slug]">
             <i class="ion-edit"></i> Edit Article
@@ -69,26 +74,37 @@
             (click)="deleteArticle()">
             <i class="ion-trash-a"></i> Delete Article
           </button>
-        </span>
+        </div>
+      </div>
 
-        <span [hidden]="canModify">
-          <app-follow-button
-            [profile]="article.author"
-            (toggle)="onToggleFollowing($event)">
-          </app-follow-button>
+      <ng-template #readerActions>
+        <div class="action-toolbar">
+          <p class="toolbar-label">Enjoyed this read?</p>
+          <div class="action-group">
+            <app-follow-button
+              [profile]="article.author"
+              (toggle)="onToggleFollowing($event)">
+            </app-follow-button>
 
-          <app-favorite-button
-            [article]="article"
-            (toggle)="onToggleFavorite($event)">
-            {{ article.favorited ? 'Unfavorite' : 'Favorite' }} Article <span class="counter">({{ article.favoritesCount }})</span>
-          </app-favorite-button>
-        </span>
-
-      </app-article-meta>
+            <app-favorite-button
+              [article]="article"
+              (toggle)="onToggleFavorite($event)">
+              {{ article.favorited ? 'Unfavorite' : 'Favorite' }} Article
+              <span class="counter">({{ article.favoritesCount }})</span>
+            </app-favorite-button>
+          </div>
+        </div>
+      </ng-template>
     </div>
 
     <div class="row">
       <div class="col-xs-12 col-md-8 offset-md-2">
+        <div class="comments-panel glass-card">
+
+        <div class="comment-header">
+          <h3>Discussion</h3>
+          <p>Join the conversation or leave a note for the author.</p>
+        </div>
 
         <div *appShowAuthed="true">
           <app-list-errors [errors]="commentFormErrors"></app-list-errors>
@@ -98,13 +114,16 @@
                 <textarea class="form-control"
                   placeholder="Write a comment..."
                   rows="3"
-                  [formControl]="commentControl"
-                ></textarea>
+                  [formControl]="commentControl">
+                </textarea>
               </div>
               <div class="card-footer">
-                <img [src]="currentUser.image || 'https://static.productionready.io/images/smiley-cyrus.jpg'" alt="user image" class="comment-author-img" />
+                <img
+                  [src]="currentUser.image || 'https://static.productionready.io/images/smiley-cyrus.jpg'"
+                  alt="user image"
+                  class="comment-author-img" />
                 <button class="btn btn-sm btn-primary" type="submit">
-                 Post Comment
+                  Post Comment
                 </button>
               </div>
             </fieldset>
@@ -112,7 +131,8 @@
         </div>
 
         <div *appShowAuthed="false">
-          <a [routerLink]="['/login']">Sign in</a> or <a [routerLink]="['/register']">sign up</a> to add comments on this article.
+          <a [routerLink]="['/login']">Sign in</a> or
+          <a [routerLink]="['/register']">sign up</a> to add comments on this article.
         </div>
 
         <app-article-comment
@@ -121,6 +141,7 @@
           (deleteComment)="onDeleteComment(comment)">
         </app-article-comment>
 
+        </div>
       </div>
     </div>
 

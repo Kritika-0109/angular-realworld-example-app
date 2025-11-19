@@ -14,6 +14,7 @@ import {
 @Component({
   selector: 'app-article-page',
   templateUrl: './article.component.html',
+  styleUrls: ['./article.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ArticleComponent implements OnInit {
@@ -25,6 +26,7 @@ export class ArticleComponent implements OnInit {
   commentFormErrors = {};
   isSubmitting = false;
   isDeleting = false;
+  showCoverImage = true; 
 
   constructor(
     private route: ActivatedRoute,
@@ -43,6 +45,7 @@ export class ArticleComponent implements OnInit {
 
         // Load the comments on this article
         this.populateComments();
+        this.updateCanModify();
         this.cd.markForCheck();
       }
     );
@@ -52,7 +55,7 @@ export class ArticleComponent implements OnInit {
       (userData: User) => {
         this.currentUser = userData;
 
-        this.canModify = (this.currentUser.username === this.article.author.username);
+        this.updateCanModify();
         this.cd.markForCheck();
       }
     );
@@ -126,5 +129,19 @@ export class ArticleComponent implements OnInit {
         }
       );
   }
+  onCoverImageError() {
+    this.showCoverImage = false;
+  }
 
+  get shouldShowContentCard(): boolean {
+    const hasBody = !!(this.article?.body && this.article.body.trim().length);
+    const hasTags = !!(this.article?.tagList && this.article.tagList.length);
+    return hasBody || hasTags;
+  }
+
+  private updateCanModify() {
+    if (this.currentUser && this.article && this.article.author) {
+      this.canModify = this.currentUser.username === this.article.author.username;
+    }
+  }
 }

@@ -6,6 +6,7 @@ export interface Article {
   description: string;
   body: string;
   tagList: string[];
+  coverImageUrl?: string;
   createdAt: string;
   updatedAt: string;
   favorited: boolean;
